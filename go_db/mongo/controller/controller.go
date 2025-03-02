@@ -136,7 +136,7 @@ func DeleteOneMovie(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(params["id"])
 
 }
-func deleteAllMovies(w http.ResponseWriter, r *http.Request) {
+func DeleteAllMovies(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Contennt-Type", "application/x-www-form-urlencode")
 	w.Header().Set("Allow-Control-Allow-Methods", "DELETE")
 	deleteAllRecords()
