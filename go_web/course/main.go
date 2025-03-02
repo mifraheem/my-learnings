@@ -40,7 +40,10 @@ func main() {
 	r.HandleFunc("/", serverHome).Methods("GET")
 	r.HandleFunc("/courses", getAllCourses).Methods("GET")
 	r.HandleFunc("/courses", createCourse).Methods("POST")
+	r.HandleFunc("/courses", deleteAllCourses).Methods("DELETE")
 	r.HandleFunc("/courses/{id}", getCourse).Methods("GET")
+	r.HandleFunc("/courses/{id}", updateCourse).Methods("PUT")
+	r.HandleFunc("/courses/{id}", deleteCourse).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":4000", r))
 
@@ -86,6 +89,12 @@ func createCourse(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("No data inside json")
 		return
 	}
+	for _, crs := range courses {
+		if crs.CourseName == course.CourseName {
+			json.NewEncoder(w).Encode("This course already exists")
+			return
+		}
+	}
 	// generate the unique id
 
 	rand.Seed(time.Now().UnixNano())
@@ -93,6 +102,45 @@ func createCourse(w http.ResponseWriter, r *http.Request) {
 	courses = append(courses, course)
 	json.NewEncoder(w).Encode(course)
 	return
+}
+
+func updateCourse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Updating an existing course")
+	params := mux.Vars(r)
+	w.Header().Set("Content-Type", "application/json")
+	for index, course := range courses {
+		if course.CourseId == params["id"] {
+			courses := append(courses[:index], courses[index+1:]...)
+			var course Course
+			fmt.Println(courses)
+			_ = json.NewDecoder(r.Body).Decode(&course)
+			course.CourseId = params["id"]
+			courses = append(courses, course)
+			json.NewEncoder(w).Encode(course)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode("No Course Found")
+}
+
+func deleteCourse(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Deleting an existing course")
+	params := mux.Vars(r)
+	w.Header().Set("Content-Type", "application/json")
+	for index, course := range courses {
+		if course.CourseId == params["id"] {
+			courses = append(courses[:index], courses[index+1:]...)
+			json.NewEncoder(w).Encode("The course has been deleted")
+			return
+		}
+	}
+	json.NewEncoder(w).Encode("No Course Found")
+}
+func deleteAllCourses(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Deleting all courses")
+	w.Header().Set("Content-Type", "application/json")
+	courses = []Course{}
+	json.NewEncoder(w).Encode("All courses have been deleted")
 }
 
 func errorHandler(err error) {
